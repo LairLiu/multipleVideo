@@ -1,0 +1,323 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>多种视频播放</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="full-screen" content="true" />
+    <meta name="screen-orientation" content="portrait" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="360-fullscreen" content="true" />
+
+    <!--白鹭自带style-->
+    <style>
+        html, body {
+            -ms-touch-action: none;
+            background: #888888;
+            padding: 0;
+            border: 0;
+            margin: 0;
+            height: 100%;
+        }
+</style>
+<!--第2种播放方式使用的style-->
+<style>
+    #canvas2{
+        width: 100%;
+        height: 100%;
+        display: none;
+        z-index: 999;
+    }
+</style>
+<!--第3种播放方式使用的style-->
+<style>
+    #video3{object-fit: fill;}
+		#video3 {
+			position: absolute;
+			width: 100%;
+			height:100%;
+			top: 0px;
+			/*motion-rotation: -90;*/
+			/*z-index: 99999991111;*/
+			left: 0;
+			display: none;
+		}
+</style>
+
+<!--第4种播放方式使用的style-->
+<style>
+    #video4{
+        position: fixed;
+        left:0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index:1;
+        }
+	#video4{
+        width: 100%;
+        height: auto;
+        -webkit-user-select: none;
+        object-fit: fill;
+        -moz-user-select: none;
+        -ms-user-select: none;
+	    z-index: 1;
+        user-select: none;
+        outline: none;
+        }
+    #video4::-webkit-media-controls {
+        display: none !important;
+    }
+
+    #video4::-x5-media-controls {
+        display: none !important;
+    }
+
+    #video4::-webkit-media-controls-enclosure {
+        display: none !important;
+    }
+</style>
+
+<!--第5种播放方式使用的style-->
+<style>
+        #canvas5{
+            position: fixed;
+            box-sizing: border-box;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            /*height: 100%;*/
+            /*border: 3px solid red;*/
+        }
+        #video5{
+            display: none;
+            width:100%;
+        }
+</style>
+
+</head>
+
+<body>
+    <div style="margin: auto;width: 100%;height: 100%;"id="egret-player" class="egret-player" data-entry-class="Main" data-orientation="auto" data-scale-mode="showAll" data-frame-rate="30"
+data-content-width="640" data-content-height="1036" data-show-paint-rect="false" data-multi-fingered="2" data-show-fps="false"
+data-show-log="false" data-show-fps-style="x:0,y:0,size:12,textColor:0xffffff,bgAlpha:0.9">
+<script>
+    var loadScript = function (list, callback) {
+        var loaded = 0; var loadNext = function () {
+            loadSingleScript(list[loaded],
+                function () { loaded++; if (loaded >= list.length) { callback(); } else { loadNext(); } })
+        }; loadNext();
+    }; var loadSingleScript
+        = function (src, callback) {
+            var s = document.createElement('script'); s.async = false; s.src = src; s.addEventListener('load',
+                function () { s.parentNode.removeChild(s); s.removeEventListener('load', arguments.callee, false); callback(); }, false);
+            document.body.appendChild(s);
+        }; var xhr = new XMLHttpRequest(); xhr.open('GET', './manifest.json?v=' + Math.random(), true);
+    xhr.addEventListener("load", function () {
+        var manifest = JSON.parse(xhr.response); var list = manifest.initial.concat(manifest.game);
+        loadScript(list, function () { /** * { * "renderMode":, //Engine rendering mode, "canvas" or "webgl" * "audioType": 0 //Use
+the audio type, 0: default, 2: web audio, 3: audio * "antialias": //Whether the anti-aliasing is enabled in WebGL mode, true:
+on, false: off, defaults to false * "canvasScaleFactor": //canvas scale factor * } **/ egret.runEgret({
+                renderMode: "canvas",
+                audioType: 0
+            });
+        });
+    }); xhr.send(null);
+</script>
+</div>
+
+<!--调试窗口-->
+<!--<script src='http://test.i-h5.cn/egret/common/vconsole.min.js'></script>-->
+
+<!--第1、2种方式必引用-->
+<script src="jsmpeg.min.js"></script>
+<!--第1种方式调用代码--在div调用jsmpeg播放ts文件-->
+<div>
+    <!--由于手机端禁止自动播放，所以不推荐使用-->
+    <!--<div id="video1" class="jsmpeg" data-onPlayEnd="" data-url="./resource/assets/v2.ts" data-loop="false" data-autoplay="false"></div>-->
+</div>
+
+<!--第2种方式调用代码--在div调用jsmpeg播放ts文件-->
+<div>
+    <canvas id="canvas2"></canvas>
+    <script>
+        let egretCanvas = document.getElementById("egret-player");
+        let canvas2 = document.getElementById("canvas2");
+        // 创建JSMpeg对象，并调用Player方法
+        // Player("ts文件路径",{canvas:要播放的canvas,onPlayEnd:播放结束事件,autoplay:是否自动播放，loop:是否循环,audio:是否加载音频chunkSize:每次加载的视频流大小（单位：bit）},dusableGl:是否禁用WebGL并始终使用Canvas2D渲染器)
+        // 注：当需要连续播放多个ts文件时，onPlayEnd事件不能直接执行播放下一文件，需要通过抛事件&监听事件来执行下一ts文件的播放，推测原因为两个文件连续播放需要有间隔，但使用setTimeOut播放时仍不能直接播放，如果找到原因请告知，在此先行谢过
+        let jsmpeg_player;
+        let flag2 = 0;
+        // 开始播放
+        function playvideo2() {
+            console.log("video2 is playing");
+            flag2 = 0;
+
+            jsmpeg_player = new window['JSMpeg'].Player("./resource/assets/taikang.ts",
+                { canvas: canvas2, onPlayEnd: stopvideo2, autoplay: false, loop: false, audio: true, chunkSize: 0.5 * 1024 * 1024, disableGl: true });
+            // jsmpeg_player.stop();
+            jsmpeg_player.play();
+
+            canvas2.style.display = "block";
+
+            // 隐藏当前白鹭canvas
+            egretCanvas.style.display = "none";
+        }
+        // 结束播放
+        function stopvideo2() {
+            if (!flag2) {
+                console.log("video2 is end");
+                // jsmpeg_player.pause();
+                jsmpeg_player.stop();
+                // 显示当前白鹭canvas
+                egretCanvas.style.display = "block";
+                canvas2.style.display = "none";
+
+                flag2 = 1;
+                jsmpeg_player = undefined;
+            }
+        }
+        canvas2.onclick = function () {
+            if (!flag2) {
+                console.log("video is stop");
+                jsmpeg_player.stop();
+                // jsmpeg_player.pause();
+                // 显示当前白鹭canvas
+                egretCanvas.style.display = "block";
+                canvas2.style.display = "none";
+
+                flag2 = 1;
+                jsmpeg_player = undefined;
+            }
+        };
+        // setInterval(() => { if (jsmpeg_player.pl) console.log(new Date().getTime()) }, 100)
+    </script>
+</div>
+
+<!--第3种播放方式--全屏播放视频-->
+<div>
+    <video id="video3" src="./resource/assets/zhuoyu.mp4" preload="none" webkit-playsinline="true" playsinline="true" x5-video-player-type="h5"></video>
+    <script>
+        let video3 = document.getElementById("video3"), flag3;
+        // 开始播放
+        function playvideo3() {
+            video3.style.display = 'block';
+            video3.currentTime = 0;
+            video3.play();
+            flag3 = 0;
+        }
+        // 暂停播放
+        function stopvideo3() {
+            if (!flag3) {
+                video3.style.display = "none";
+                video3.pause();
+                flag3 = 1;
+                // 可在此抛事件
+            }
+        }
+        // 播放结束监听事件
+        video3.onended = function () {
+            if (!flag) {
+                video3.style.display = "none";
+                video3.pause();
+                flag3 = 1;
+                // 可在此抛事件
+            }
+        }
+        // 点击视频时结束视频的播放
+        video3.onclick = function () {
+            video3.style.display = "none";
+            video3.pause();
+            flag3 = 1;
+            // 可在此抛事件
+        }
+    </script>
+</div>
+
+<!--第4种播放方式--适应屏幕播放视频-->
+<div>
+    <video src="./resource/assets/taikang.mp4" id="video4" class="video" preload="none" class="img" x5-playsinline="true" playsinline="true"
+        webkit-playsinline="true" autoplay="none"></video>
+    <script>
+        let video4 = document.getElementById("video4"), flag4;
+        video4.style.display = "none";
+        //   
+        if (!video4.onpause) {
+            video4.pause();
+        }
+
+        // 开始播放 
+        function playvideo4() {
+            video4.style.display = 'block';
+            video4.currentTime = 0;
+            video4.play();
+            flag = 0;
+        }
+        // 暂停播放
+        function stopvideo4() {
+            if (!flag) {
+                video4.pause();
+                video4.style.display = "none";
+                flag = 1;
+                // 可在此抛事件
+            }
+        }
+        // 播放结束监听事件
+        video4.onended = function () {
+            video4.pause();
+            video4.style.display = "none";
+        }
+        video4.onclick = function () {
+            if (!flag) {
+                video4.pause();
+                video4.style.display = "none";
+                flag = 1;
+                // 可在此抛事件
+            }
+        }
+    </script>
+</div>
+
+<!--第5种播放方式使用代码-->
+<div>
+    <video id="video5" src="./resource/assets/canvas_test.mp4" poster="./resource/assets/bg.jpg" webkit-playsinline playsinline
+        preload="auto" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
+    <canvas id="canvas5"></canvas>
+    <script>
+        let video5 = document.getElementById("video5");
+        let canvas5 = document.getElementById("canvas5");
+        let ctx = canvas5.getContext('2d');
+        function playvideo5() {
+
+            canvas5.style.display = "block";
+            //  根据视频的实际宽高设置
+            canvas5.width = 960;
+            canvas5.height = 540;
+
+            function videoplay() {
+                function render() {
+                    ctx.drawImage(video5, 0, 0);
+                    if (!video5.paused) {
+                        window.requestAnimationFrame(render);
+                    }
+                }
+                video5.play();
+                render();
+            }
+            videoplay();
+        }
+        canvas5.onclick = function () {
+            video5.pause();
+            canvas5.style.display = "none";
+
+            // 视频播放结束时将时间恢复到0的位置，在重复播放时第一帧不会出现上一视频的小尾巴
+            video5.currentTime = 0;
+        }
+    </script>
+</div>
+</body>
+<!--测试链接：http://test.i-h5.cn/lka_game/Test/JSMpeg/-->
+
+</html>
